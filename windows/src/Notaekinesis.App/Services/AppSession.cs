@@ -106,6 +106,14 @@ internal sealed class AppSession : IAsyncDisposable
         catch (Exception e) when (e is HttpRequestException or OperationCanceledException or UnauthorizedException or IOException) { }
     }
 
+    /// <summary>Changes and saves settings.</summary>
+    public void UpdateSettings(Func<Settings, Settings> change)
+    {
+        Settings = change(Settings);
+        Settings.Save(Directory);
+        StateChanged?.Invoke(this, EventArgs.Empty);
+    }
+
     /// <summary>Uploads a file and saves it as a new item. Needs a connection: the item points at the server's copy.</summary>
     public async Task<Item> SaveFile(Stream content, string name, CancellationToken ct = default)
     {

@@ -32,6 +32,9 @@ public sealed partial class BasketWindow : Window
     private bool _busy;
     private bool _closing;
 
+    /// <summary>Opened by a drag reaching the screen edge: it goes away again if the drag moves on.</summary>
+    private bool _fromEdge;
+
     internal BasketWindow(AppSession session)
     {
         _session = session;
@@ -100,6 +103,27 @@ public sealed partial class BasketWindow : Window
         NoteBox.Focus(FocusState.Programmatic);
     }
 
+    /// <summary>
+    /// Opens flush against the screen edge, under the pointer, without taking focus, so the drag
+    /// that reached the edge carries on into the basket.
+    /// </summary>
+    internal void ShowAtEdge(Native.POINT cursor, Edge edge)
+    {
+        if (IsShown) return;
+        var scale = Native.ScaleAt(cursor);
+        int w = (int)(WidthDip * scale), h = (int)(HeightDip * scale);
+        var display = DisplayArea.GetFromPoint(new PointInt32(cursor.X, cursor.Y), DisplayAreaFallback.Nearest).OuterBounds;
+        var x = edge == Edge.Right ? display.X + display.Width - w : display.X;
+        var y = Math.Clamp(cursor.Y - h / 2, display.Y, display.Y + display.Height - h);
+        AppWindow.MoveAndResize(new RectInt32(x, y, w, h));
+        Reset();
+        _fromEdge = true;
+        AppWindow.Show(activateWindow: false);
+        // Give up if the drag never comes in (cancelled, or it was just passing by).
+        _hideTimer.Interval = TimeSpan.FromSeconds(2);
+        _hideTimer.Start();
+    }
+
     public void Hide()
     {
         _hideTimer.Stop();
@@ -109,6 +133,7 @@ public sealed partial class BasketWindow : Window
 
     private void Reset()
     {
+        _fromEdge = false;
         _savedId = null;
         _busy = false;
         NoteBox.Text = "";
@@ -219,6 +244,7 @@ public sealed partial class BasketWindow : Window
         if (!Useful(e.DataView) || _busy) return;
         DropHighlight.Opacity = 0.15;
         _hideTimer.Stop();
+        _pointerInside = true;
     }
 
     private void OnDragOver(object sender, DragEventArgs e)
@@ -228,7 +254,16 @@ public sealed partial class BasketWindow : Window
         e.DragUIOverride.Caption = "Save to notaekinesis";
     }
 
-    private void OnDragLeave(object sender, DragEventArgs e) => DropHighlight.Opacity = 0;
+    private void OnDragLeave(object sender, DragEventArgs e)
+    {
+        DropHighlight.Opacity = 0;
+        _pointerInside = false;
+        if (_fromEdge && _savedId is null && !_busy)
+        {
+            _hideTimer.Interval = TimeSpan.FromSeconds(1);
+            _hideTimer.Start();
+        }
+    }
 
     private async void OnDrop(object sender, DragEventArgs e)
     {

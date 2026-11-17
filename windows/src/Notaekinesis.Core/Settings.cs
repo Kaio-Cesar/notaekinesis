@@ -9,6 +9,9 @@ public sealed record Settings
     public string? ServerUrl { get; init; }
     public User? User { get; init; }
 
+    /// <summary>Screen edge that opens the basket when something is dragged onto it: "right", "left" or "off".</summary>
+    public string DropEdge { get; init; } = "right";
+
     public static string DefaultDirectory { get; } =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Notaekinesis");
 

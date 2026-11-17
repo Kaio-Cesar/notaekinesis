@@ -93,6 +93,9 @@ public sealed partial class MainWindow : Window
         Avatar.DisplayName = user?.Name ?? "";
         if (user?.Image is { } image && Uri.TryCreate(image, UriKind.Absolute, out var imageUri))
             Avatar.ProfilePicture = new BitmapImage(imageUri) { DecodePixelWidth = 56 };
+        EdgeRight.IsChecked = _session.Settings.DropEdge == "right";
+        EdgeLeft.IsChecked = _session.Settings.DropEdge == "left";
+        EdgeOff.IsChecked = _session.Settings.DropEdge == "off";
         AccountName.Text = user is null ? "Signed in" : $"{user.Name} ({user.Email})";
         ServerName.Text = _session.Settings.ServerUrl ?? "";
 
@@ -161,6 +164,13 @@ public sealed partial class MainWindow : Window
     }
 
     private async void OnSignOut(object sender, RoutedEventArgs e) => await _session.SignOut();
+
+    /// <summary>Which screen edge opens the basket when something is dragged onto it.</summary>
+    private void OnDropEdge(object sender, RoutedEventArgs e)
+    {
+        var edge = (string)((FrameworkElement)sender).Tag;
+        _session.UpdateSettings(s => s with { DropEdge = edge });
+    }
 
     private void OnSyncNow(object sender, RoutedEventArgs e) => _session.Sync?.RequestSync();
 

@@ -37,6 +37,8 @@ Closing the window keeps notaekinesis running in the tray. Click the tray icon t
 - paste with Ctrl+V: a copied image or file is saved at once, and copied text goes into the box
 - type a quick note with `#tags` and press Enter
 
+You don't need the hotkey while dragging. Drag something to the **right edge of the screen** (the middle half of it, on the outermost monitor) and the basket slides in under the pointer; keep dragging into it and let go. If you move away without dropping, it hides again. A 2-pixel invisible strip catches the drag. It only reacts to drag and drop, so ordinary mouse use is unaffected. You can move it to the left edge, or turn it off, under the account menu → **Drop edge**.
+
 What lands on it is saved immediately. A dragged link keeps the link's text as its title. Plain dropped text is saved as it is, so a `#` in it isn't read as a tag. After a save, you can type a note or `#tags` to add to that item. Esc, or the hotkey again, closes the basket. Files need a connection, because they upload straight away; links and notes don't. If another app already owns Win+Shift+N, the main window says so, and the tray menu still opens the basket.
 
 ## Signing in

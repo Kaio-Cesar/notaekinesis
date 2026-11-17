@@ -50,6 +50,14 @@
                                 <MenuFlyoutItem x:Name="AccountName" IsEnabled="False" />
                                 <MenuFlyoutItem x:Name="ServerName" IsEnabled="False" />
                                 <MenuFlyoutSeparator />
+                                <MenuFlyoutSubItem Text="Drop edge">
+                                    <MenuFlyoutSubItem.Icon>
+                                        <FontIcon Glyph="&#xE89F;" />
+                                    </MenuFlyoutSubItem.Icon>
+                                    <RadioMenuFlyoutItem x:Name="EdgeRight" Click="OnDropEdge" GroupName="edge" Tag="right" Text="Right edge" />
+                                    <RadioMenuFlyoutItem x:Name="EdgeLeft" Click="OnDropEdge" GroupName="edge" Tag="left" Text="Left edge" />
+                                    <RadioMenuFlyoutItem x:Name="EdgeOff" Click="OnDropEdge" GroupName="edge" Tag="off" Text="Off" />
+                                </MenuFlyoutSubItem>
                                 <MenuFlyoutItem Text="Sync now" Click="OnSyncNow">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE895;" />

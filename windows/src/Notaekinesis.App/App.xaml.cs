@@ -17,6 +17,7 @@ public partial class App : Application
     private MainWindow? _window;
     private BasketWindow? _basket;
     private ShellHost? _shell;
+    private EdgeStrip? _edge;
     private bool _quitting;
 
     public App()
@@ -57,6 +58,26 @@ public partial class App : Application
         if (!_shell.RegisterHotkey(HotkeyModifiers, HotkeyKey))
             _window.ShowNotice("Win+Shift+N is taken by another app, so the quick-add hotkey is off. The tray menu still opens it.", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Warning);
 
+        // Dragging something onto the screen edge opens the basket right there.
+        // It's an extra: if it fails, the rest of the app carries on.
+        try
+        {
+            var strip = new EdgeStrip();
+            _edge = strip;
+            strip.DragArrived += (_, point) => _basket.ShowAtEdge(point, strip.Edge);
+            strip.Place(ParseEdge(_session.Settings.DropEdge));
+            _session.StateChanged += (_, _) => _window.DispatcherQueue.TryEnqueue(() =>
+            {
+                var edge = ParseEdge(_session.Settings.DropEdge);
+                if (edge != strip.Edge) strip.Place(edge);
+            });
+            if (strip.Problem is not null) LogCrash(new InvalidOperationException(strip.Problem));
+        }
+        catch (Exception e)
+        {
+            LogCrash(e);
+        }
+
         // Closing the window keeps the app in the tray, ready for the hotkey; Quit is in the tray menu.
         _window.AppWindow.Closing += (sender, e) =>
         {
@@ -73,12 +94,21 @@ public partial class App : Application
     {
         _quitting = true;
         _shell?.Dispose();
+        _edge?.Dispose();
         _basket?.Shutdown();
         _window?.Close();
         if (_session is not null) await _session.DisposeAsync();
         _instance?.ReleaseMutex();
         Exit();
     }
+
+    private static Edge ParseEdge(string value) =>
+        value switch
+        {
+            "left" => Edge.Left,
+            "off" => Edge.Off,
+            _ => Edge.Right,
+        };
 
     /// <summary>Appends to crash.log in the data folder, so problems in release builds can be reported.</summary>
     private void LogCrash(Exception? e)
