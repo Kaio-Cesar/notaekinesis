@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 namespace Notaekinesis.Core;
 
 /// <summary>What the quick-add box and drag and drop turn into an item. Text is Markdown.</summary>
-public sealed record Capture(string Text, string? Url, IReadOnlyList<string> Tags);
+public sealed record Capture(string Text, string? Url, IReadOnlyList<string> Tags, string? Title = null);
 
 /// <summary>A port of web/src/lib/capture.ts; keep the two in step (the tests mirror tests/capture.test.ts).</summary>
 public static partial class CaptureParser

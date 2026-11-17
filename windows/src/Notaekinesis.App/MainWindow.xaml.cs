@@ -34,6 +34,7 @@ public sealed partial class MainWindow : Window
         _files = new FileCache(Path.Combine(session.Directory, "files"));
         InitializeComponent();
 
+        AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico"));
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
         var scale = Native.GetDpiForWindow(WinRT.Interop.WindowNative.GetWindowHandle(this)) / 96.0;
@@ -419,7 +420,7 @@ public sealed partial class MainWindow : Window
         UndoBar.IsOpen = false;
     }
 
-    private void ShowNotice(string message, InfoBarSeverity severity, bool undo = false)
+    internal void ShowNotice(string message, InfoBarSeverity severity, bool undo = false)
     {
         UndoBar.Message = message;
         UndoBar.Severity = severity;

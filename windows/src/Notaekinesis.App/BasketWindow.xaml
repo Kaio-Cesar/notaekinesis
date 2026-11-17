@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="Notaekinesis.App.BasketWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Quick add">
+    <Window.SystemBackdrop>
+        <DesktopAcrylicBackdrop />
+    </Window.SystemBackdrop>
+
+    <Grid
+        x:Name="Root"
+        Padding="12"
+        AllowDrop="True"
+        DragEnter="OnDragEnter"
+        DragLeave="OnDragLeave"
+        DragOver="OnDragOver"
+        Drop="OnDrop"
+        KeyDown="OnKeyDown"
+        PointerEntered="OnPointerEntered"
+        PointerExited="OnPointerExited"
+        RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid x:Name="DropZone">
+            <Rectangle
+                x:Name="DropOutline"
+                RadiusX="8"
+                RadiusY="8"
+                Stroke="{ThemeResource ControlStrongStrokeColorDefaultBrush}"
+                StrokeDashArray="4,3"
+                StrokeThickness="1.5" />
+            <Rectangle
+                x:Name="DropHighlight"
+                Fill="{ThemeResource AccentFillColorDefaultBrush}"
+                Opacity="0"
+                RadiusX="8"
+                RadiusY="8" />
+
+            <StackPanel x:Name="IdlePanel" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="4">
+                <FontIcon FontSize="22" Glyph="&#xE896;" />
+                <TextBlock HorizontalAlignment="Center" FontWeight="SemiBold" Text="Drop a link, text or file" />
+                <TextBlock
+                    x:Name="IdleHint"
+                    HorizontalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="or paste with Ctrl+V · Esc to close"
+                    TextAlignment="Center"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <StackPanel x:Name="BusyPanel" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8" Visibility="Collapsed">
+                <ProgressRing x:Name="BusyRing" Width="24" Height="24" IsActive="False" />
+                <TextBlock x:Name="BusyText" HorizontalAlignment="Center" Text="Uploading…" />
+            </StackPanel>
+
+            <StackPanel x:Name="SavedPanel" Margin="16,8" VerticalAlignment="Center" Spacing="4" Visibility="Collapsed">
+                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8">
+                    <FontIcon Foreground="{ThemeResource SystemFillColorSuccessBrush}" FontSize="18" Glyph="&#xE73E;" />
+                    <TextBlock FontWeight="SemiBold" Text="Saved" />
+                </StackPanel>
+                <TextBlock
+                    x:Name="SavedTitle"
+                    HorizontalAlignment="Center"
+                    MaxLines="2"
+                    TextAlignment="Center"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    x:Name="SavedDetail"
+                    HorizontalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+
+            <StackPanel x:Name="ErrorPanel" Margin="16,8" VerticalAlignment="Center" Spacing="6" Visibility="Collapsed">
+                <FontIcon Foreground="{ThemeResource SystemFillColorCriticalBrush}" FontSize="18" Glyph="&#xE783;" />
+                <TextBlock x:Name="ErrorText" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+            </StackPanel>
+        </Grid>
+
+        <TextBox
+            x:Name="NoteBox"
+            Grid.Row="1"
+            GotFocus="OnNoteFocus"
+            Paste="OnPaste"
+            PlaceholderText="Quick note… #tags"
+            PreviewKeyDown="OnNoteKeyDown"
+            TextChanged="OnNoteChanged" />
+    </Grid>
+</Window>

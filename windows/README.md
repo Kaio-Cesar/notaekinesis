@@ -2,7 +2,7 @@
 
 A native WinUI 3 client, compiled ahead of time (NativeAOT). It keeps a full copy of your notes in a local SQLite database, so it opens instantly and works offline; changes sync with the server in the background.
 
-- `src/Notaekinesis.Core`: local database (with full-text search), sync engine, API client, sign-in, quick-add and Markdown parsing. No UI, so it is unit-tested on its own.
+- `src/Notaekinesis.Core`: local database (with full-text search), sync engine, API client, sign-in, and parsing of quick-add text, drops and Markdown. No UI, so it is unit-tested on its own.
 - `src/Notaekinesis.App`: the WinUI 3 app (unpackaged, Windows App SDK bundled).
 - `tests/Notaekinesis.Core.Tests`: xUnit tests for Core.
 
@@ -26,6 +26,18 @@ dotnet publish src/Notaekinesis.App -c Release
 ```
 
 The release build lands in `src/Notaekinesis.App/bin/Release/net10.0-windows10.0.26100.0/win-x64/publish/`. That folder is the whole app: copy it anywhere and run `Notaekinesis.exe`. For ARM64 add `-r win-arm64`.
+
+## Tray and quick add
+
+Closing the window keeps notaekinesis running in the tray. Click the tray icon to open it again; right-click it for **Quick add** and **Quit**. Starting the app a second time brings back the running one. Start it with `--background` to go straight to the tray (for launching at login).
+
+**Win+Shift+N** opens the quick-add basket near the pointer. It stays up while you switch to another app, so you can:
+
+- drag a link, a browser tab, selected text, or files (images, videos, PDFs) onto it
+- paste with Ctrl+V: a copied image or file is saved at once, and copied text goes into the box
+- type a quick note with `#tags` and press Enter
+
+What lands on it is saved immediately. A dragged link keeps the link's text as its title. Plain dropped text is saved as it is, so a `#` in it isn't read as a tag. After a save, you can type a note or `#tags` to add to that item. Esc, or the hotkey again, closes the basket. Files need a connection, because they upload straight away; links and notes don't. If another app already owns Win+Shift+N, the main window says so, and the tray menu still opens the basket.
 
 ## Signing in
 

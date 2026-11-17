@@ -106,6 +106,14 @@ internal sealed class AppSession : IAsyncDisposable
         catch (Exception e) when (e is HttpRequestException or OperationCanceledException or UnauthorizedException or IOException) { }
     }
 
+    /// <summary>Uploads a file and saves it as a new item. Needs a connection: the item points at the server's copy.</summary>
+    public async Task<Item> SaveFile(Stream content, string name, CancellationToken ct = default)
+    {
+        var api = Api ?? throw new InvalidOperationException("Not signed in.");
+        var file = await api.Upload(content, name, mime: null, ct);
+        return Store.Save(Item.New() with { File = new Core.FileInfo(file.Id, file.Name, file.Mime, file.Size) });
+    }
+
     private void OnSyncStatus(object? sender, EventArgs e) => StateChanged?.Invoke(this, EventArgs.Empty);
 
     private async Task StopSync()
