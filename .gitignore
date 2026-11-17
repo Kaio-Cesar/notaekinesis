@@ -12,3 +12,4 @@ obj/
 build/
 local.properties
 .turbo/
+.claude/launch.json

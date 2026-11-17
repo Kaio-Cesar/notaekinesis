@@ -5,5 +5,5 @@
   "insertFinalNewline": true,
   "sortImports": {},
   "sortPackageJson": true,
-  "ignorePatterns": ["server/drizzle/meta/**", "bun.lock"]
+  "ignorePatterns": ["server/drizzle/meta/**", "bun.lock", "web/src/components/ui/**"]
 }

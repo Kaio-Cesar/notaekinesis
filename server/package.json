@@ -7,11 +7,12 @@
     ".": "./src/app.ts"
   },
   "scripts": {
-    "dev": "bun --watch src/index.ts",
+    "dev": "bun --env-file=../.env --watch src/index.ts",
     "start": "bun src/index.ts",
     "db:generate": "drizzle-kit generate",
-    "typecheck": "tsc --noEmit",
-    "test": "bun test ../tests"
+    "typecheck": "bun --bun tsc --noEmit",
+    "test": "bun test ../tests",
+    "dev:login": "bun --env-file=../.env scripts/dev-login.ts"
   },
   "dependencies": {
     "@elysiajs/openapi": "^1.4.17",
@@ -22,6 +23,6 @@
   "devDependencies": {
     "@types/bun": "^1.4.4",
     "drizzle-kit": "^0.31.11",
-    "typescript": "^7.0.2"
+    "typescript": "npm:typescript-native-bridge@6.0.3-bridge.19.tsgo.7.0.2"
   }
 }

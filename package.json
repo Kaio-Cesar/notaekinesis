@@ -2,7 +2,8 @@
   "name": "notaekinesis",
   "private": true,
   "workspaces": [
-    "server"
+    "server",
+    "web"
   ],
   "scripts": {
     "dev": "turbo run dev",
@@ -19,6 +20,9 @@
     "oxfmt": "^0.78.0",
     "oxlint": "^1.93.0",
     "turbo": "^2.11.10"
+  },
+  "overrides": {
+    "typescript": "npm:typescript-native-bridge@6.0.3-bridge.19.tsgo.7.0.2"
   },
   "packageManager": "bun@1.4.2"
 }
