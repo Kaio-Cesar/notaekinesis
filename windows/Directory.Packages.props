@@ -1,0 +1,10 @@
+<Project>
+  <!-- Versions are at least a week old, matching bunfig.toml's minimumReleaseAge. -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.15" />
+    <!-- Just the WinUI part of the Windows App SDK: the full package also bundles ~100 MB of AI and search runtimes. -->
+    <PackageVersion Include="Microsoft.WindowsAppSDK.WinUI" Version="2.6.5" />
+    <PackageVersion Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2957" />
+    <PackageVersion Include="xunit.v3" Version="4.0.3" />
+  </ItemGroup>
+</Project>

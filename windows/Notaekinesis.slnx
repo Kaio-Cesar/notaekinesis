@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Notaekinesis.App/Notaekinesis.App.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="src/Notaekinesis.Core/Notaekinesis.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Notaekinesis.Core.Tests/Notaekinesis.Core.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,8 @@
+[*.cs]
+indent_size = 4
+# Formatting with the current culture is fine here: SQL text and ids are ASCII.
+dotnet_diagnostic.CA1305.severity = none
+
+[src/Notaekinesis.App/**.cs]
+# The app and its window live as long as the process; they clean up on Closed, not through IDisposable.
+dotnet_diagnostic.CA1001.severity = none
