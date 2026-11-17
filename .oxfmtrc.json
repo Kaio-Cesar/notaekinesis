@@ -1,0 +1,9 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 120,
+  "endOfLine": "lf",
+  "insertFinalNewline": true,
+  "sortImports": {},
+  "sortPackageJson": true,
+  "ignorePatterns": ["server/drizzle/meta/**", "bun.lock"]
+}
