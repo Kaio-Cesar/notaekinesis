@@ -1,0 +1,17 @@
+services:
+  notaekinesis:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      DATA_DIR: /data
+      WEB_DIST: /app/web/dist
+    volumes:
+      - data:/data
+    ports:
+      - "3000:3000"
+
+volumes:
+  data:
