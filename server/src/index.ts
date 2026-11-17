@@ -13,6 +13,8 @@ const app = createApp({ db, config }).listen({
   port: config.port,
   // SSE connections send a heartbeat every 20 s; keep idle sockets open longer than that.
   idleTimeout: 60,
+  // Room for the largest upload plus the multipart envelope.
+  maxRequestBodySize: config.maxUploadBytes + 1024 * 1024,
 });
 
 console.log(`notaekinesis listening on ${app.server?.url} (public URL ${config.publicUrl})`);

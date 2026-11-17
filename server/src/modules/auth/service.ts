@@ -56,6 +56,8 @@ export function createAuth(db: Db, config: Config) {
                       name: String(p.name ?? p.preferred_username ?? p.email ?? "user"),
                       email: String(p.email ?? `${String(p.sub)}@users.invalid`),
                       emailVerified: true,
+                      // OIDC `picture` claim; refreshed on every sign-in (overrideUserInfo).
+                      image: typeof (p.image ?? p.picture) === "string" ? String(p.image ?? p.picture) : undefined,
                     };
                   },
                 },

@@ -4,10 +4,11 @@ const tag = t.String({ minLength: 1, maxLength: 64 });
 const tags = t.Array(tag, { maxItems: 50 });
 const nullableString = (maxLength: number) => t.Nullable(t.String({ maxLength }));
 
-/** A full item as written by a client. Times are epoch milliseconds. */
-const input = t.Object({
+const common = {
   id: t.String({ format: "uuid" }),
-  kind: t.UnionEnum(["note", "link"]),
+  /** Derived by the server: `file` when a file is attached, else `link` when there's a URL, else `note`. */
+  kind: t.UnionEnum(["note", "link", "file"]),
+  /** Markdown. For links and files it's the optional text that goes with them. */
   text: t.String({ maxLength: 100_000 }),
   url: nullableString(4096),
   title: nullableString(1000),
@@ -18,10 +19,20 @@ const input = t.Object({
   createdAt: t.Integer({ minimum: 0 }),
   updatedAt: t.Integer({ minimum: 0 }),
   deletedAt: t.Nullable(t.Integer({ minimum: 0 })),
+};
+
+/** A full item as written by a client. Times are epoch milliseconds. */
+const input = t.Object({
+  ...common,
+  /** A file from POST /api/files. Upload first, then push the item. */
+  fileId: t.Optional(t.Nullable(t.String({ format: "uuid" }))),
 });
 
+const fileInfo = t.Object({ id: t.String(), name: t.String(), mime: t.String(), size: t.Integer() });
+
 const item = t.Object({
-  ...input.properties,
+  ...common,
+  file: t.Nullable(fileInfo),
   siteName: t.Nullable(t.String()),
   faviconUrl: t.Nullable(t.String()),
   rev: t.Integer(),
@@ -36,6 +47,7 @@ export const ItemModel = {
     text: t.Optional(t.String({ maxLength: 100_000 })),
     url: t.Optional(nullableString(4096)),
     title: t.Optional(nullableString(1000)),
+    fileId: t.Optional(t.Nullable(t.String({ format: "uuid" }))),
     pinned: t.Optional(t.Boolean()),
     tags: t.Optional(tags),
   }),

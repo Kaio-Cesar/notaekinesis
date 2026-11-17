@@ -19,8 +19,14 @@ export function normalizeTags(tags: string[]): string[] {
 }
 
 export function toItem(row: ItemRow): Item {
-  const { userId: _, ...item } = row;
-  return item;
+  const { userId: _, fileId, fileName, fileMime, fileSize, ...item } = row;
+  const file = fileId ? { id: fileId, name: fileName ?? "file", mime: fileMime ?? "", size: fileSize ?? 0 } : null;
+  return { ...item, file };
+}
+
+/** The kind follows from the content, so clients can't send an inconsistent one. */
+export function kindOf(item: { fileId?: string | null; url: string | null }): Item["kind"] {
+  return item.fileId ? "file" : item.url ? "link" : "note";
 }
 
 /** Turns free text into an FTS5 prefix query, or null if there is nothing to search for. */
@@ -102,13 +108,15 @@ export class ItemService {
 
   create(userId: string, body: ItemModel["create"]): Item {
     const url = body.url?.trim() || null;
+    const fileId = body.fileId ?? null;
     return this.write(
       userId,
       {
         id: body.id ?? Bun.randomUUIDv7(),
-        kind: url ? "link" : "note",
+        kind: kindOf({ fileId, url }),
         text: body.text ?? "",
         url,
+        fileId,
         title: body.title ?? null,
         description: null,
         pinned: body.pinned ?? false,
@@ -124,12 +132,13 @@ export class ItemService {
   update(userId: string, id: string, patch: ItemModel["patch"]): Item {
     const existing = this.get(userId, id);
     const url = patch.url === undefined ? existing.url : patch.url?.trim() || null;
-    return this.write(userId, { ...existing, ...patch, url, kind: url ? "link" : "note" }, existing);
+    const fileId = existing.file?.id ?? null;
+    return this.write(userId, { ...existing, ...patch, url, fileId, kind: kindOf({ fileId, url }) }, existing);
   }
 
   remove(userId: string, id: string): void {
     const existing = this.get(userId, id);
-    this.write(userId, { ...existing, deletedAt: Date.now() }, existing);
+    this.write(userId, { ...existing, fileId: existing.file?.id ?? null, deletedAt: Date.now() }, existing);
   }
 
   /** Server-side edits always win over the stored version. */
@@ -137,7 +146,10 @@ export class ItemService {
     const updatedAt = Math.max(Date.now(), (existing?.updatedAt ?? 0) + 1);
     const item = { ...input, updatedAt };
     const { results } = this.sync.push(userId, [{ mutationId: crypto.randomUUID(), item }]);
-    if (results[0]?.status === "rejected") throw status(409, "Conflict");
+    if (results[0]?.status === "rejected") {
+      // Either the id belongs to someone else, or the attached file isn't this user's.
+      throw input.fileId && !existing ? status(400, "Unknown file") : status(409, "Conflict");
+    }
     return this.find(userId, input.id)!;
   }
 }

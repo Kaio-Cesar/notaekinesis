@@ -32,6 +32,10 @@ export const authController = ({ auth, config }: { auth: Auth; config: Config })
           auth: true,
           response: "Me",
           detail: { tags: ["auth"] },
+        })
+        .get("/config", () => ({ providerId: config.oidc?.providerId ?? null }), {
+          response: "AuthConfig",
+          detail: { tags: ["auth"] },
         }),
     )
     .get(

@@ -1,3 +1,7 @@
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { createApp } from "../server/src/app";
 import type { Config } from "../server/src/config";
 import { openDb } from "../server/src/db";
@@ -12,10 +16,11 @@ export function testConfig(overrides: Partial<Config> = {}): Config {
   return {
     publicUrl: BASE,
     port: 0,
-    dataDir: ":memory:",
+    dataDir: mkdtempSync(join(tmpdir(), "notaekinesis-test-")),
     authSecret: "test-secret-test-secret-test-secret-0123",
     oidc: null,
     webDist: null,
+    maxUploadBytes: 1024 * 1024,
     ...overrides,
   };
 }
@@ -57,7 +62,22 @@ export function setup(overrides: Partial<Config> = {}) {
     return { status: res.status, json, text, headers: res.headers };
   }
 
-  return { db, app, createUser, request };
+  /** Uploads bytes as a multipart file, like the web app does. */
+  async function upload(token: string | null, bytes: Uint8Array, name: string, type = "application/octet-stream") {
+    const form = new FormData();
+    form.append("file", new File([bytes], name, { type }));
+    const headers = new Headers();
+    if (token) headers.set("authorization", `Bearer ${token}`);
+    const res = await app.handle(new Request(BASE + "/api/files", { method: "POST", headers, body: form }));
+    const text = await res.text();
+    let json: any = null;
+    try {
+      json = JSON.parse(text);
+    } catch {}
+    return { status: res.status, json, text };
+  }
+
+  return { db, app, createUser, request, upload };
 }
 
 let clock = 1_700_000_000_000;

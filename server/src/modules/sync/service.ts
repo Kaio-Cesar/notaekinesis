@@ -1,9 +1,9 @@
 import { and, asc, eq, gt, sql } from "drizzle-orm";
 
 import type { Db } from "../../db";
-import { appliedMutations, itemTags, items, userSync } from "../../db/schema";
+import { appliedMutations, files, itemTags, items, userSync } from "../../db/schema";
 import type { ItemModel } from "../items/model";
-import { normalizeTags, toItem } from "../items/service";
+import { kindOf, normalizeTags, toItem } from "../items/service";
 import type { SyncModel } from "./model";
 
 type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
@@ -76,6 +76,20 @@ export class SyncService {
       return { mutationId, itemId: input.id, status: "rejected", rev: 0 };
     }
 
+    // Leaving `fileId` out keeps the current file, for clients that don't know about files.
+    const fileId = input.fileId === undefined ? (existing?.fileId ?? null) : input.fileId;
+    const file = fileId
+      ? tx
+          .select()
+          .from(files)
+          .where(and(eq(files.id, fileId), eq(files.userId, userId)))
+          .get()
+      : undefined;
+    if (fileId && !file) {
+      // Unknown file, or someone else's. Not recorded, so a retry after uploading can still succeed.
+      return { mutationId, itemId: input.id, status: "rejected", rev: 0 };
+    }
+
     let status: "applied" | "stale";
     let rev: number;
     if (existing && existing.updatedAt >= input.updatedAt) {
@@ -87,9 +101,13 @@ export class SyncService {
       const tags = normalizeTags(input.tags);
       const sameUrl = existing && existing.url === input.url;
       const values = {
-        kind: input.kind,
+        kind: kindOf({ fileId, url: input.url }),
         text: input.text,
         url: input.url,
+        fileId,
+        fileName: file?.name ?? null,
+        fileMime: file?.mime ?? null,
+        fileSize: file?.size ?? null,
         // Keep server-fetched preview data unless the client set it or the URL changed.
         title: input.title ?? (sameUrl ? existing.title : null),
         description: input.description ?? (sameUrl ? existing.description : null),

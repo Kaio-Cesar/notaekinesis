@@ -16,6 +16,8 @@ export interface Config {
   } | null;
   /** Static web app build to serve at `/`. */
   webDist: string | null;
+  /** Largest accepted upload, in bytes. */
+  maxUploadBytes: number;
 }
 
 function list(value: string | undefined): string[] {
@@ -54,5 +56,6 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     authSecret,
     oidc,
     webDist: env.WEB_DIST ?? null,
+    maxUploadBytes: Number(env.MAX_UPLOAD_MB ?? 100) * 1024 * 1024,
   };
 }

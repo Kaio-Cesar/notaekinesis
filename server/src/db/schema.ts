@@ -84,9 +84,15 @@ export const items = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    kind: text("kind", { enum: ["note", "link"] }).notNull(),
+    kind: text("kind", { enum: ["note", "link", "file"] }).notNull(),
     text: text("text").notNull().default(""),
     url: text("url"),
+    // Attached file. Name, type and size are copied from `files` (files never change),
+    // so items can be returned without a join.
+    fileId: text("file_id").references(() => files.id),
+    fileName: text("file_name"),
+    fileMime: text("file_mime"),
+    fileSize: integer("file_size"),
     title: text("title"),
     description: text("description"),
     siteName: text("site_name"),
@@ -107,6 +113,25 @@ export const items = sqliteTable(
     index("items_user_feed_idx").on(t.userId, t.pinned, t.createdAt),
   ],
 );
+
+/** Uploaded files. The bytes live on disk under DATA_DIR/files; rows are never updated. */
+export const files = sqliteTable(
+  "files",
+  {
+    id: text("id").primaryKey(), // UUIDv7, also the file name on disk
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    /** Detected from the file's contents, never taken from the client. */
+    mime: text("mime").notNull(),
+    size: integer("size").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (t) => [index("files_user_idx").on(t.userId)],
+);
+
+export type FileRow = typeof files.$inferSelect;
 
 export const itemTags = sqliteTable(
   "item_tags",
