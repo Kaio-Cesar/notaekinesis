@@ -38,12 +38,36 @@ public sealed class ApiClient : IDisposable
         cts.CancelAfter(CallTimeout);
         using var res = await _http.SendAsync(request, cts.Token).ConfigureAwait(false);
         if (res.StatusCode == HttpStatusCode.Unauthorized) throw new UnauthorizedException();
-        if (!res.IsSuccessStatusCode)
-        {
-            var body = await res.Content.ReadAsStringAsync(cts.Token).ConfigureAwait(false);
-            throw new HttpRequestException($"{(int)res.StatusCode} {body}".Trim(), null, res.StatusCode);
-        }
+        if (!res.IsSuccessStatusCode) throw await Failure(res, cts.Token).ConfigureAwait(false);
         return (await res.Content.ReadFromJsonAsync(type, cts.Token).ConfigureAwait(false))!;
+    }
+
+    /// <summary>
+    /// An error with a message fit to show: the server answers with plain text ("Files can be at
+    /// most 100 MB") or, for a validation failure, JSON whose "summary" says what was wrong.
+    /// </summary>
+    private static async Task<HttpRequestException> Failure(HttpResponseMessage res, CancellationToken ct)
+    {
+        var body = (await res.Content.ReadAsStringAsync(ct).ConfigureAwait(false)).Trim();
+        return new HttpRequestException(ErrorMessage(body, res.StatusCode), null, res.StatusCode);
+    }
+
+    internal static string ErrorMessage(string body, HttpStatusCode status)
+    {
+        if (body.StartsWith('{'))
+        {
+            try
+            {
+                using var json = JsonDocument.Parse(body);
+                foreach (var key in (string[])["summary", "message", "error"])
+                    if (json.RootElement.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.String && v.GetString() is { Length: > 0 } text)
+                        return text;
+            }
+            catch (JsonException) { }
+            body = "";
+        }
+        if (body.Length == 0 || body.StartsWith('<')) return $"The server answered {(int)status} {status}.";
+        return body.Length > 200 ? body[..200] + "…" : body;
     }
 
     public Task<User> Me(CancellationToken ct = default) =>
@@ -81,15 +105,29 @@ public sealed class ApiClient : IDisposable
 
     public async Task<FileDto> Upload(Stream content, string fileName, string? mime, CancellationToken ct = default)
     {
-        var file = new StreamContent(content);
-        if (mime is not null) file.Headers.ContentType = new MediaTypeHeaderValue(mime);
-        using var form = new MultipartFormDataContent { { file, "file", fileName } };
+        using var form = FilePart(content, fileName, mime);
         using var req = new HttpRequestMessage(HttpMethod.Post, "api/files") { Content = form };
         using var res = await _http.SendAsync(req, ct).ConfigureAwait(false);
         if (res.StatusCode == HttpStatusCode.Unauthorized) throw new UnauthorizedException();
-        if (!res.IsSuccessStatusCode)
-            throw new HttpRequestException(await res.Content.ReadAsStringAsync(ct).ConfigureAwait(false), null, res.StatusCode);
+        if (!res.IsSuccessStatusCode) throw await Failure(res, ct).ConfigureAwait(false);
         return (await res.Content.ReadFromJsonAsync(ApiJson.Default.FileDto, ct).ConfigureAwait(false))!;
+    }
+
+    /// <summary>
+    /// A multipart body shaped like a browser's: a quoted UTF-8 file name and a Content-Type on
+    /// the part. .NET's default (unquoted name, MIME-encoded file name, no type) makes Bun read
+    /// the part as a text field instead of a file.
+    /// </summary>
+    internal static MultipartFormDataContent FilePart(Stream content, string fileName, string? mime)
+    {
+        var file = new StreamContent(content);
+        file.Headers.ContentType = new MediaTypeHeaderValue(mime ?? "application/octet-stream");
+        // Like browsers: line breaks dropped, quotes percent-encoded.
+        var safeName = new string([.. fileName.Where(c => c != (char)13 && c != (char)10)]).Replace("\"", "%22", StringComparison.Ordinal);
+        file.Headers.TryAddWithoutValidation("Content-Disposition", $"form-data; name=\"file\"; filename=\"{safeName}\"");
+        var form = new MultipartFormDataContent { HeaderEncodingSelector = (_, _) => System.Text.Encoding.UTF8 };
+        form.Add(file);
+        return form;
     }
 
     /// <summary>Downloads a file's bytes. The caller disposes the stream.</summary>
