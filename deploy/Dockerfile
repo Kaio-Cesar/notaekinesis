@@ -1,5 +1,9 @@
 # Build:  docker build -f deploy/Dockerfile -t notaekinesis .
-FROM oven/bun:1.4 AS build
+# Multi-arch: docker buildx build --platform linux/amd64,linux/arm64 -f deploy/Dockerfile .
+
+# The web app is plain files, the same on every architecture, so it's built once on the
+# build machine's own platform rather than under emulation.
+FROM --platform=$BUILDPLATFORM oven/bun:1.4 AS build
 WORKDIR /app
 COPY package.json bun.lock bunfig.toml turbo.json ./
 COPY server/package.json server/

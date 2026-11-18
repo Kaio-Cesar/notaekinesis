@@ -55,14 +55,18 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Emulates arm64 for the image's final stage (the web build runs natively).
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
-      # Builds only; publishing to a registry can be added once there is one.
+      # Builds only; the release workflow publishes tagged versions to ghcr.io.
       - name: Build image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: deploy/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
