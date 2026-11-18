@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- An amber sticky note with a folded corner, like the Windows app's icon. 108dp canvas, 72dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#F5B323"
+        android:pathData="M34,32h40a4,4 0,0 1,4 4v26l-16,16h-28a4,4 0,0 1,-4 -4v-38a4,4 0,0 1,4 -4z" />
+    <path
+        android:fillColor="#D18E0B"
+        android:pathData="M78,62l-16,16v-12a4,4 0,0 1,4 -4z" />
+    <path
+        android:fillColor="#7A5200"
+        android:pathData="M38,42h28v3h-28zM38,50h28v3h-28zM38,58h18v3h-18z" />
+</vector>

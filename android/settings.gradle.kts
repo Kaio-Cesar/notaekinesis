@@ -16,4 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "notaekinesis"
 
-include(":core")
+include(":core", ":app")
