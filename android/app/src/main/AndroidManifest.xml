@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Android 17+: needed to reach a server on the LAN. Asked for only when the server is local. -->
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
 
     <queries>
         <!-- To find a browser that supports Custom Tabs for signing in and opening links. -->
