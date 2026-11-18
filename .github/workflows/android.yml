@@ -1,0 +1,56 @@
+# Android client: core tests, then a minified release APK uploaded as an artifact.
+name: Android
+
+on:
+  push:
+    branches: [main]
+    paths: &paths
+      - android/**
+      - .github/workflows/android.yml
+  pull_request:
+    paths: *paths
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: android
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: 21
+
+      # Also checks that the committed gradle-wrapper.jar is a genuine Gradle release.
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      # The runner's SDK has accepted licences; the build downloads the platform it needs.
+      - name: Test and build
+        run: ./gradlew :core:test :app:assembleRelease
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: core-test-reports
+          path: android/core/build/reports/tests/
+          if-no-files-found: ignore
+
+      # Signed with the debug key until there's a release key (see android/README.md).
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: notaekinesis-android
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
