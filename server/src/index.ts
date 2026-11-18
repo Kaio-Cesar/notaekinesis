@@ -1,12 +1,21 @@
 import { mkdirSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 import { createApp } from "./app";
 import { loadConfig } from "./config";
 import { openDb } from "./db";
 
 const config = loadConfig();
-mkdirSync(config.dataDir, { recursive: true });
+try {
+  mkdirSync(config.dataDir, { recursive: true });
+} catch (error) {
+  // Usually Docker: a DATA_DIR from .env pointing inside the image instead of at the /data volume.
+  console.error(
+    `Can't create the data folder ${resolve(config.dataDir)} (DATA_DIR=${process.env.DATA_DIR ?? "unset"}). ` +
+      "Point DATA_DIR at a folder this user can write to; in Docker, leave it unset to use /data.",
+  );
+  throw error;
+}
 const db = openDb(join(config.dataDir, "notaekinesis.db"));
 
 const app = createApp({ db, config }).listen({

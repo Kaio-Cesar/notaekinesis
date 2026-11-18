@@ -26,6 +26,8 @@ RUN bun install --frozen-lockfile --production --filter @notaekinesis/server
 COPY --from=build /app/server/src server/src
 COPY --from=build /app/server/drizzle server/drizzle
 COPY --from=build /app/web/dist web/dist
+# Owned by the app's user, so a new named volume (which copies this folder's owner) is writable.
+RUN mkdir -p /data && chown bun:bun /data
 VOLUME /data
 EXPOSE 3000
 USER bun
