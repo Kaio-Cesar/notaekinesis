@@ -1,4 +1,7 @@
 import { describe, expect, test } from "bun:test";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 import { NativeLogin } from "../server/src/modules/auth/service";
 import { BASE, setup } from "./helpers";
@@ -18,6 +21,38 @@ describe("API authentication", () => {
     expect((await request(revoked.token, "GET", "/api/me")).status).toBe(200);
     db.$client.run("DELETE FROM session WHERE token = ?", [revoked.token]);
     expect((await request(revoked.token, "GET", "/api/me")).status).toBe(401);
+  });
+
+  test("better-auth's GET endpoints still work when the web app is served", async () => {
+    const webDist = mkdtempSync(join(tmpdir(), "notaekinesis-web-"));
+    writeFileSync(join(webDist, "index.html"), "<!doctype html><title>app</title>");
+    writeFileSync(join(webDist, "app.js"), "export {};");
+    const { createUser, request } = setup({
+      webDist,
+      oidc: {
+        providerId: "pocketid",
+        discoveryUrl: "https://idp.invalid/.well-known/openid-configuration",
+        clientId: "id",
+        clientSecret: "secret",
+        scopes: ["openid"],
+        allowedGroups: [],
+      },
+    });
+    const { userId, token } = createUser();
+
+    const session = await request(token, "GET", "/api/auth/get-session");
+    expect(session.status).toBe(200);
+    expect(session.json.user.id).toBe(userId);
+
+    // The IdP's redirect back is a GET; a bad state is better-auth's error redirect, not a 404.
+    const callback = await request(null, "GET", "/api/auth/callback/pocketid?code=abc&state=nope");
+    expect(callback.status).toBe(302);
+
+    // The app shell still serves client-side routes, and unknown API paths still 404.
+    expect((await request(null, "GET", "/archive")).text).toContain("<title>app</title>");
+    expect((await request(null, "GET", "/app.js")).text).toBe("export {};");
+    expect((await request(null, "GET", "/../package.json")).text).toContain("<title>app</title>");
+    expect((await request(null, "GET", "/api/nope")).status).toBe(404);
   });
 
   test("/api/me returns the signed-in user", async () => {
