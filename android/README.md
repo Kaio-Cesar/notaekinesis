@@ -24,7 +24,9 @@ A native Kotlin + Jetpack Compose client (Material 3, dynamic color). It keeps a
 ./gradlew :app:assembleRelease
 ```
 
-The release APK lands in `app/build/outputs/apk/release/`. Until there's a release key it's signed with the debug key, which is fine for sideloading. Debug builds install alongside it as `dev.notaekinesis.debug`.
+The release APK lands in `app/build/outputs/apk/release/`. Debug builds install alongside it as `dev.notaekinesis.debug`.
+
+Release builds are signed with the key named by `ANDROID_KEYSTORE_PATH`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD`, if set; otherwise with the debug key, which is fine for sideloading but can't update an APK signed by another machine. `-PversionName=1.2.3 -PversionCode=…` set the version. The release workflow (`.github/workflows/release.yml`) does all of this from a `v1.2.3` tag, taking the key from repository secrets.
 
 ## Using it
 
