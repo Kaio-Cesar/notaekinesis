@@ -1,0 +1,12 @@
+# Keep local installs, builds and data out of the image; the Dockerfile installs and builds itself.
+**/node_modules
+**/dist
+**/.turbo
+/data
+/server/data
+.env
+.env.*
+!.env.example
+android
+windows
+.git

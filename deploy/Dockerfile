@@ -7,7 +7,7 @@ COPY web/package.json web/
 RUN bun install --frozen-lockfile
 COPY server server
 COPY web web
-RUN bun --cwd web run build
+RUN bun run --cwd web build
 
 FROM oven/bun:1.4-slim
 WORKDIR /app
