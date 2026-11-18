@@ -29,7 +29,7 @@ The release build lands in `src/Notaekinesis.App/bin/Release/net10.0-windows10.0
 
 ## Tray and quick add
 
-Closing the window keeps notaekinesis running in the tray. Click the tray icon to open it again; right-click it for **Quick add** and **Quit**. Starting the app a second time brings back the running one. Start it with `--background` to go straight to the tray (for launching at login).
+Closing the window keeps notaekinesis running in the tray. Click the tray icon to open it again; right-click it for **Quick add** and **Quit**. Starting the app a second time brings back the running one. To start with Windows, turn on **Start with Windows** in the account menu. The app then starts in the tray at login, without opening its window. If you're signed out, it shows the sign-in window instead. The setting lives in the usual per-user `Run` registry key, so it also appears in Task Manager's **Startup apps**. Disabling it there shows as off in the app, and turning it on again in the app undoes that. The entry points at the copy you turned it on from; if you move the app folder, the entry follows the next time you start the app from its new place. `--background` gives the same tray-only start by hand.
 
 **Win+Shift+N** opens the quick-add basket near the pointer. It stays up while you switch to another app, so you can:
 

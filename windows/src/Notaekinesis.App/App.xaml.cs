@@ -11,6 +11,9 @@ public partial class App : Application
     private const uint HotkeyModifiers = Native.MOD_WIN | Native.MOD_SHIFT;
     private const uint HotkeyKey = 'N';
 
+    /// <summary>The value name under the Run key, as shown in Task Manager's Startup apps.</summary>
+    internal const string StartupName = "notaekinesis";
+
     private readonly string _dataDir = Environment.GetEnvironmentVariable("NOTAEKINESIS_DATA_DIR") ?? Core.Settings.DefaultDirectory;
     private Mutex? _instance;
     private AppSession? _session;
@@ -86,8 +89,20 @@ public partial class App : Application
             sender.Hide();
         };
 
-        // Started with Windows: stay in the tray until needed.
-        if (!Environment.GetCommandLineArgs().Contains("--background")) _window.Activate();
+        // If the app was moved since "Start with Windows" was turned on, follow it.
+        try
+        {
+            new Core.StartupRegistration(StartupName).UpdatePath(Environment.ProcessPath!);
+        }
+        catch (Exception e) when (e is UnauthorizedAccessException or System.Security.SecurityException or IOException)
+        {
+            LogCrash(e);
+        }
+
+        // Started with Windows: stay in the tray until needed. Signed out there's nothing to wait
+        // for in the background, so show the sign-in instead.
+        var background = Environment.GetCommandLineArgs().Contains(Core.StartupRegistration.BackgroundArg);
+        if (!background || !_session.IsSignedIn) _window.Activate();
     }
 
     private async Task Quit()

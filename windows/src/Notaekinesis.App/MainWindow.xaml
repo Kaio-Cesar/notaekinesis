@@ -46,7 +46,7 @@
                         AutomationProperties.Name="Account">
                         <PersonPicture x:Name="Avatar" Width="28" Height="28" />
                         <Button.Flyout>
-                            <MenuFlyout Placement="BottomEdgeAlignedRight">
+                            <MenuFlyout Opening="OnAccountMenuOpening" Placement="BottomEdgeAlignedRight">
                                 <MenuFlyoutItem x:Name="AccountName" IsEnabled="False" />
                                 <MenuFlyoutItem x:Name="ServerName" IsEnabled="False" />
                                 <MenuFlyoutSeparator />
@@ -58,6 +58,7 @@
                                     <RadioMenuFlyoutItem x:Name="EdgeLeft" Click="OnDropEdge" GroupName="edge" Tag="left" Text="Left edge" />
                                     <RadioMenuFlyoutItem x:Name="EdgeOff" Click="OnDropEdge" GroupName="edge" Tag="off" Text="Off" />
                                 </MenuFlyoutSubItem>
+                                <ToggleMenuFlyoutItem x:Name="StartupToggle" Click="OnStartupToggle" Text="Start with Windows" />
                                 <MenuFlyoutItem Text="Sync now" Click="OnSyncNow">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE895;" />

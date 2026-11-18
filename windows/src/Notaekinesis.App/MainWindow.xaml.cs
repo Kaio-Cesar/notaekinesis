@@ -19,6 +19,7 @@ namespace Notaekinesis.App;
 public sealed partial class MainWindow : Window
 {
     private readonly AppSession _session;
+    private readonly StartupRegistration _startup = new(App.StartupName);
     private readonly FileCache _files;
     private readonly ObservableCollection<ItemViewModel> _items = [];
     private readonly DispatcherQueueTimer _reloadTimer;
@@ -164,6 +165,23 @@ public sealed partial class MainWindow : Window
     }
 
     private async void OnSignOut(object sender, RoutedEventArgs e) => await _session.SignOut();
+
+    // Read from the registry each time: it can also be changed in Task Manager's Startup apps.
+    private void OnAccountMenuOpening(object? sender, object e) => StartupToggle.IsChecked = _startup.IsEnabled;
+
+    private void OnStartupToggle(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (StartupToggle.IsChecked) _startup.Enable(Environment.ProcessPath!);
+            else _startup.Disable();
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or System.Security.SecurityException or IOException)
+        {
+            ShowNotice($"Couldn't change the startup setting: {ex.Message}", InfoBarSeverity.Warning);
+        }
+        StartupToggle.IsChecked = _startup.IsEnabled;
+    }
 
     /// <summary>Which screen edge opens the basket when something is dragged onto it.</summary>
     private void OnDropEdge(object sender, RoutedEventArgs e)
